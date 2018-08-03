@@ -15,6 +15,10 @@ exports.start = (req, res) => {
             message: 'O serviço já está em funcionamento!'
         });
     }
+    job.start();
+    res.status(200).send({
+        message: 'Serviço startado com sucesso!'
+    });
 };
 
 exports.stop = (req, res) => {
@@ -23,13 +27,16 @@ exports.stop = (req, res) => {
             message: 'O serviço já está parado!'
         });
     }
+    job.stop();
+    res.status(200).send({
+        message: 'Serviço parado com sucesso!'
+    });
 };
 
 exports.refresh = (req, res) => {
     res.status(403).send({
         message: {
-            lastDates: job.lastDates(),
-            nextDates: job.nextDates()
+            sendAt: job.sendAt()
         }
     });
 };
