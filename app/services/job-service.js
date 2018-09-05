@@ -11,29 +11,34 @@ const execute = async () => {
     }).catch((err) => {
         console.log('Erro: ' + err);
     });
-    console.log('Buscando FOs respondidos...')
+    console.log('Buscando FOs abertos...')
     let fo = await fatoObservado.find({
         foStatus: foStatus.ABERTO
     }).then((fos) => {
         console.log('[' + fos.length + '] FOs encontrados.');
-        console.log('Iniciando atualizacao dos FOs...');
-        fos.forEach((fo) => {
-            console.log('Atualizando FO com id: [' + fo._id + ']');
-            console.log('Diferença de dias até hoje: ' + diffDays(fo.createdAt));
-            if (diffDays(fo.createdAt) > 2) {
-                fatoObservado.findOneAndUpdate({
-                    foStatus: foStatus.EXPIRADO
-                }, {
-                    _id: fo._id
-                });
-            }
-            console.log("FO atualizado: " + fo);
-        });
+        if (fos.length > 0) {
+            console.log('Iniciando atualizacao dos FOs...');
+            fos.forEach((fo) => {
+                console.log('Atualizando FO com id: [' + fo._id + ']');
+                console.log('Diferença de dias até hoje: ' + diffDays(fo.createdAt));
+                if (diffDays(fo.createdAt) > 2) {
+                    fatoObservado.update({
+                        _id: fo._id
+                    }, {
+                        foStatus: foStatus.EXPIRADO
+                    }).then(foAtualizado => {
+                        console.log('FO atualizado com sucesso!');
+                    }).catch(err => {
+                        console.log('Erro: ' + err);
+                    });
+                }
+            });
+            console.log('Atualizações realizadas com sucesso.');
+        }
     }).catch((err) => {
         console.log(err);
     });
-    console.log('Atualizações realizadas com sucesso. \nFinalizando processo.');
-    mongoose.disconnect();
+    console.log('Finalizando processo.');
     console.log('Processo finalizado.');
 }
 
@@ -42,4 +47,6 @@ function diffDays(day) {
     return today.diff(moment(day), 'days');
 }
 
-export { execute };
+export {
+    execute
+};
