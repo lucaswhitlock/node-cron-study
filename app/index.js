@@ -5,7 +5,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 
 //rotas
-import scheduler from './app/routes/scheduler-actions-route';
+import scheduler from './routes/scheduler-actions-route';
 
 let port = process.env.PORT || 3000;
 
