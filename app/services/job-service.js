@@ -1,45 +1,24 @@
-import mongoose from 'mongoose';
 import moment from 'moment';
-import dbconf from '../etc/database-config';
-import fatoObservado from '../models/fo-schema';
+import apiService from './api-service';
 import foStatus from '../models/status-fo-enum';
 
 const execute = async () => {
-    console.log('Tentando realizar a conexão na base de dados...');
-    await mongoose.connect(dbconf.URL_LOCAL).then(() => {
-        console.log('Conectado.');
-    }).catch((err) => {
-        console.log('Erro: ' + err);
-    });
-    console.log('Buscando FOs abertos...')
-    let fo = await fatoObservado.find({
-        foStatus: foStatus.ABERTO
-    }).then((fos) => {
-        console.log('[' + fos.length + '] FOs encontrados.');
-        if (fos.length > 0) {
-            console.log('Iniciando atualizacao dos FOs...');
-            fos.forEach((fo) => {
-                console.log('Atualizando FO com id: [' + fo._id + ']');
-                console.log('Diferença de dias até hoje: ' + diffDays(fo.createdAt));
-                if (diffDays(fo.createdAt) > 2) {
-                    fatoObservado.update({
-                        _id: fo._id
-                    }, {
-                        foStatus: foStatus.EXPIRADO
-                    }).then(foAtualizado => {
-                        console.log('FO atualizado com sucesso!');
-                    }).catch(err => {
-                        console.log('Erro: ' + err);
-                    });
-                }
-            });
-            console.log('Atualizações realizadas com sucesso.');
-        }
-    }).catch((err) => {
-        console.log(err);
-    });
-    console.log('Finalizando processo.');
-    console.log('Processo finalizado.');
+    console.log('Iniciando serviço. \nBuscando por FOs abertos...');
+    try {
+        fos = await apiService.getFOs();
+        console.log(fos.length + ' FOs encontrados.');
+        fos.array.forEach(fo => {
+            if (diffDays(fo) > 2) {
+                console.log('Atualizando FO: ' + fo._id);
+                fo.tipoFO = foStatus.EXPIRADO;
+                apiService.updateFO(fo._id, fo);
+                console.log('Atualizado com sucesso!')
+            }
+        });
+        console.log('Processo de atualização finalizado.');
+    } catch (error) {
+        console.log(error.message);
+    }
 }
 
 function diffDays(day) {
